@@ -1,4 +1,4 @@
-#include "Simple-Number-Only-Language.h"
+#include "SNOL.h"
 
 int main() {
     SNOLInterpreter interpreter;
