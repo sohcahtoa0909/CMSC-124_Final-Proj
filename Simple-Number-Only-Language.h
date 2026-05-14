@@ -1,6 +1,0 @@
-#ifndef SIMPLE_NUMBER_ONLY_LANGUAGE_H
-#define SIMPLE_NUMBER_ONLY_LANGUAGE_H
-
-#include "SNOL.h"
-
-#endif

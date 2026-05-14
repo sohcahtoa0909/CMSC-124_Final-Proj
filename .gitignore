@@ -3,3 +3,6 @@ TASK.md
 
 # executables
 *.exe
+
+#VSCODE!!!
+.vscode
