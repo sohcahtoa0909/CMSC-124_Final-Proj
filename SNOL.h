@@ -33,14 +33,20 @@ private:
     }
 
     void handlePrint(const std::string& expr) {
+        std::string trimmed = trim(expr);
+
         Variable result;
         if (!parser.evaluateExpression(expr, result)) {
-            std::cout << "SNOL> Error! Invalid PRINT expression." << std::endl;
             return;
         }
         std::cout << "SNOL> ";
+
+        bool isVariable = isValidVariableName(trimmed) && variables.find(trimmed) != variables.end();
+        if (isVariable) {
+            std::cout << "[" << trimmed << "] = ";
+        }
         if (result.type == Variable::INT_TYPE) std::cout << result.intValue;
-        else std::cout << std::fixed << std::setprecision(4) << result.floatValue;
+        else std::cout << result.floatValue;
         std::cout << std::endl;
     }
 
