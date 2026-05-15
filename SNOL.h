@@ -54,9 +54,10 @@ private:
         std::string name = trim(varName);
 
         if (!isValidVariableName(name)) {
-            std::cout << "SNOL> Error! Invalid variable name." << std::endl;
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
             return;
         }
+
         std::cout << "SNOL> Please enter value for [" << name << "]: " << std::endl;
         std::cout << "Input: ";
         std::string input;
@@ -74,20 +75,23 @@ private:
     void handleAssignment(const std::string& command) {
         size_t eqPos = command.find('=');
         if (eqPos == std::string::npos) {
-            std::cout << "SNOL> Error! Invalid assignment syntax." << std::endl;
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
             return;
         }
 
         std::string left = trim(command.substr(0, eqPos));
         std::string right = trim(command.substr(eqPos + 1));
+
         if (!isValidVariableName(left)) {
-            std::cout << "SNOL> Error! Invalid variable name." << std::endl;
+            std::cout << "SNOL> Unknown word [" << left << "]" << std::endl;
             return;
         }
-
+        if (right.empty()) {
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
+            return;
+        }
         Variable result;
         if (!parser.evaluateExpression(right, result)) {
-            std::cout << "SNOL> Error! Invalid assignment expression." << std::endl;
             return;
         }
         variables[left] = result;
