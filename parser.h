@@ -21,6 +21,23 @@ private:
         return s.substr(start, end - start + 1);
     }
 
+    std::string normalizeSpaces(const std::string& s) {
+        std::string out;
+        bool space = false;
+        for (char c : s) {
+            if (isspace(c)) {
+                if (!space) {
+                    out += ' ';
+                    space = true;
+                }
+            } else {
+                out += c;
+                space = false;
+            }
+        }
+        return out;
+    }
+
     bool isValidVariableName(const std::string& name) {
         if (name.empty() || !std::isalpha(static_cast<unsigned char>(name[0]))) return false;
         for (size_t i = 1; i < name.length(); ++i) {
@@ -54,6 +71,12 @@ private:
         if (it == variables.end()) return false;
         result = it->second;
         return true;
+    }
+
+    bool containsKeyword(const std::string& expr) {
+        return expr.find("BEG") != std::string::npos ||
+               expr.find("PRINT") != std::string::npos ||
+               expr.find("EXIT!") != std::string::npos;
     }
 
     void printTypeMismatchError() {
@@ -170,7 +193,21 @@ private:
             return true;
         }
 
-        return parseLiteral(t, result);
+        if (parseLiteral(t, result)) return true;
+
+        bool hasDigit = false;
+        for (char c : t) {
+            if (std::isdigit(static_cast<unsigned char>(c))) {
+                hasDigit = true;
+            }
+        }
+        if (hasDigit) {
+            std::cout << "SNOL> Error! Invalid number format." << std::endl;
+        } else {
+            std::cout << "SNOL> Unknown word [" << t << "]" << std::endl;
+        }
+
+        return false;
     }
 
     bool parseMultiplyDivide(const std::string& expr, Variable& result) {
@@ -213,19 +250,25 @@ public:
         std::string trimmedExpr = trim(expr);
         if (trimmedExpr.empty()) return false;
 
-        if (isValidVariableName(trimmedExpr)) {
-            if (!getVariable(trimmedExpr, result)) {
-                printUndefinedError(trimmedExpr);
+        // optional but safe normalization
+        std::string cleanExpr = trimmedExpr; // normalizeSpaces(trimmedExpr);
+
+        // block keywords inside expressions
+        if (containsKeyword(cleanExpr)) {
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
+            return false;
+        }
+
+        if (isValidVariableName(cleanExpr)) {
+            if (!getVariable(cleanExpr, result)) {
+                printUndefinedError(cleanExpr);
                 return false;
             }
             return true;
         }
 
-        if (parseLiteral(trimmedExpr, result)) return true;
+        if (parseLiteral(cleanExpr, result)) return true;
 
-        std::string cleanExpr;
-        for (char c : trimmedExpr) if (c != ' ') cleanExpr += c;
-        if (cleanExpr.empty()) return false;
         return parseAddSubtract(cleanExpr, result);
     }
 };

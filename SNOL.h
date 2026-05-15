@@ -32,6 +32,13 @@ private:
         return true;
     }
 
+    bool isValidExpressionCommand(const std::string& command) {
+        if (command.empty()) return false;
+        char first = command[0];
+        if (first == '+' || first == '-' || first == '*' || first == '/' || first == '%') return false;
+        return true;
+    }
+
     void handlePrint(const std::string& expr) {
         std::string trimmed = trim(expr);
 
@@ -113,16 +120,20 @@ public:
             if (command == "EXIT!") {
                 std::cout << "Interpreter is now terminated..." << std::endl;
                 running = false;
-            } else if (command.substr(0, 6) == "PRINT ") {
+            } else if (command.rfind("PRINT ", 0) == 0) {
                 handlePrint(command.substr(6));
-            } else if (command.substr(0, 4) == "BEG ") {
+            } else if (command.rfind("BEG ", 0) == 0) {
                 handleBeg(command.substr(4));
             } else if (command.find('=') != std::string::npos) {
                 handleAssignment(command);
             } else {
                 Variable result;
-                if (!parser.evaluateExpression(command, result)) {
+                if (!isValidExpressionCommand(command)) {
                     std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
+                    continue;
+                }
+                if (!parser.evaluateExpression(command, result)) {
+                    // Error message already printed by parser
                 }
             }
         }
