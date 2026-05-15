@@ -46,14 +46,23 @@ private:
 
     void handleBeg(const std::string& varName) {
         std::string name = trim(varName);
+
         if (!isValidVariableName(name)) {
             std::cout << "SNOL> Error! Invalid variable name." << std::endl;
             return;
         }
-        Variable v;
-        v.type = Variable::INT_TYPE;
-        v.intValue = 0;
-        variables[name] = v;
+        std::cout << "SNOL> Please enter value for [" << name << "]: " << std::endl;
+        std::cout << "Input: ";
+        std::string input;
+        std::getline(std::cin, input);
+
+        Variable value;
+
+        if (!parser.evaluateExpression(input, value)) {
+            std::cout << "SNOL> Error! Invalid number format." << std::endl;
+            return;
+        }
+        variables[name] = value;
     }
 
     void handleAssignment(const std::string& command) {
