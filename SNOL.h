@@ -32,47 +32,73 @@ private:
         return true;
     }
 
+    bool isValidExpressionCommand(const std::string& command) {
+        if (command.empty()) return false;
+        char first = command[0];
+        if (first == '+' || first == '-' || first == '*' || first == '/' || first == '%') return false;
+        return true;
+    }
+
     void handlePrint(const std::string& expr) {
+        std::string trimmed = trim(expr);
+
         Variable result;
         if (!parser.evaluateExpression(expr, result)) {
-            std::cout << "SNOL> Error! Invalid PRINT expression." << std::endl;
             return;
         }
         std::cout << "SNOL> ";
+
+        bool isVariable = isValidVariableName(trimmed) && variables.find(trimmed) != variables.end();
+        if (isVariable) {
+            std::cout << "[" << trimmed << "] = ";
+        }
         if (result.type == Variable::INT_TYPE) std::cout << result.intValue;
-        else std::cout << std::fixed << std::setprecision(4) << result.floatValue;
+        else std::cout << result.floatValue;
         std::cout << std::endl;
     }
 
     void handleBeg(const std::string& varName) {
         std::string name = trim(varName);
+
         if (!isValidVariableName(name)) {
-            std::cout << "SNOL> Error! Invalid variable name." << std::endl;
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
             return;
         }
-        Variable v;
-        v.type = Variable::INT_TYPE;
-        v.intValue = 0;
-        variables[name] = v;
+
+        std::cout << "SNOL> Please enter value for [" << name << "]: " << std::endl;
+        std::cout << "Input: ";
+        std::string input;
+        std::getline(std::cin, input);
+
+        Variable value;
+
+        if (!parser.evaluateExpression(input, value)) {
+            std::cout << "SNOL> Error! Invalid number format." << std::endl;
+            return;
+        }
+        variables[name] = value;
     }
 
     void handleAssignment(const std::string& command) {
         size_t eqPos = command.find('=');
         if (eqPos == std::string::npos) {
-            std::cout << "SNOL> Error! Invalid assignment syntax." << std::endl;
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
             return;
         }
 
         std::string left = trim(command.substr(0, eqPos));
         std::string right = trim(command.substr(eqPos + 1));
+
         if (!isValidVariableName(left)) {
-            std::cout << "SNOL> Error! Invalid variable name." << std::endl;
+            std::cout << "SNOL> Unknown word [" << left << "]" << std::endl;
             return;
         }
-
+        if (right.empty()) {
+            std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
+            return;
+        }
         Variable result;
         if (!parser.evaluateExpression(right, result)) {
-            std::cout << "SNOL> Error! Invalid assignment expression." << std::endl;
             return;
         }
         variables[left] = result;
@@ -94,16 +120,20 @@ public:
             if (command == "EXIT!") {
                 std::cout << "Interpreter is now terminated..." << std::endl;
                 running = false;
-            } else if (command.substr(0, 6) == "PRINT ") {
+            } else if (command.rfind("PRINT ", 0) == 0) {
                 handlePrint(command.substr(6));
-            } else if (command.substr(0, 4) == "BEG ") {
+            } else if (command.rfind("BEG ", 0) == 0) {
                 handleBeg(command.substr(4));
             } else if (command.find('=') != std::string::npos) {
                 handleAssignment(command);
             } else {
                 Variable result;
-                if (!parser.evaluateExpression(command, result)) {
+                if (!isValidExpressionCommand(command)) {
                     std::cout << "SNOL> Unknown command! Does not match any valid command of the language." << std::endl;
+                    continue;
+                }
+                if (!parser.evaluateExpression(command, result)) {
+                    // Error message already printed by parser
                 }
             }
         }
